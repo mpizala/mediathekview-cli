@@ -45,32 +45,31 @@ mediathekview -s https://mediathekviewweb.de
 ### Direct Commands
 
 ```bash
+# Search for videos (all channels, no limit)
+mediathekview 
+
 # List all available channels
 mediathekview --channels
 
-# Search for videos (all channels, no limit)
-mediathekview -q "Tatort"
-
 # Search in a specific channel
-mediathekview -q "Tatort" -c "ARD"
+mediathekview -c "ARD"
 
 # Search with channel selection prompt
-mediathekview -q "Tatort" -c
+mediathekview -c
 
 # Search with result limit
-mediathekview -q "Tatort" -l 10
+mediathekview -l 10
 
 # Search with both channel filter and limit
-mediathekview -q "Tatort" -c "ZDF" -l 5
+mediathekview -c "ZDF" -l 5
 
 # Specify a preferred video quality
-mediathekview -q "Tatort" --quality medium
-
+mediathekview -
 # Download a specific video by ID
 mediathekview -d "some-video-id"
 
 # Specify output file (skips filename prompt)
-mediathekview -q "Tatort" -o ~/Downloads/tatort.mp4
+mediathekview -o ~/Downloads/tatort.mp4
 ```
 
 ### Options
@@ -80,13 +79,12 @@ Options:
   -V, --version          output the version number
   -s, --server <url>     Server URL (default: "https://mediathekviewweb.de")
   --channels             List available channels
-  -q, --query <query>    Search query
   -d, --download <id>    Download video by ID
   -o, --output <path>    Output file path for download
   -i, --interactive      Interactive mode
   -l, --limit <limit>    Limit search results (default: no limit)
   -c, --channel [channel] Filter results by channel (prompts if no value provided)
-  --quality <quality>    Video quality (hd, medium, low) (default: hd)
+  -    Video quality (hd, medium, low) (default: hd)
   --debug                Enable debug mode (verbose console output)
   -h, --help             display help for command
 ```
@@ -127,7 +125,6 @@ To enable debug mode, use the `--debug` flag with any command:
 
 ```bash
 mediathek --debug
-mediathek --debug -q "Tatort"
 mediathek --debug -c
 ```
 

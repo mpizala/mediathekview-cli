@@ -114,7 +114,6 @@ program
   .version('1.0.0')
   .option('-s, --server <url>', 'Server URL', configDefaults.server || DEFAULT_SERVER)
   .option('--channels', 'List available channels')
-  .option('-q, --query <query>', 'Search query')
   .option('-d, --download <id>', 'Download video by ID')
   .option('-o, --output <path>', 'Output file path for download', configDefaults.output)
   .option('-i, --interactive', 'Interactive mode')
