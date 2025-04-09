@@ -33,7 +33,7 @@ server = https://mediathekviewweb.de
 quality = hd
 
 # Default limit for search results (comment out for no limit)
-# limit = 50
+limit = 100
 
 # Channels to exclude (comma-separated)
 # exclude = ZDF,NDR
