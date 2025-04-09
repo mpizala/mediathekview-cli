@@ -14,6 +14,7 @@ console.log('  mediathekview --channels                     List all available c
 console.log('  mediathekview -q "Tatort"                   Search for videos (all channels, no limit)');
 console.log('  mediathekview -q "Tatort" -c "ARD"          Search in specific channel');
 console.log('  mediathekview -q "Tatort" -c                Channel selection prompt (includes ALL)');
+console.log('  mediathekview -q "Tatort" -e "ZDF,ARD"      Exclude specific channels');
 console.log('  mediathekview -q "Tatort" -l 10             Limit search results to 10');
 console.log('  mediathekview -q "Tatort" --quality medium  Specify video quality (hd, medium, low)');
 console.log('  mediathekview -d "video-id"                 Download a specific video by ID');

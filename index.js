@@ -35,6 +35,9 @@ quality = hd
 # Default limit for search results (comment out for no limit)
 # limit = 50
 
+# Channels to exclude (comma-separated)
+# exclude = ZDF,NDR
+
 # Default output file path (comment out for interactive prompt)
 # output = ~/Videos/mediathek.mp4
 `;
@@ -117,6 +120,7 @@ program
   .option('-i, --interactive', 'Interactive mode')
   .option('-l, --limit <limit>', 'Limit search results', configDefaults.limit)
   .option('-c, --channel [channel]', 'Filter results by channel', configDefaults.channel)
+  .option('-e, --exclude <channels>', 'Exclude channels (comma-separated list)', configDefaults.exclude)
   .option('--quality <quality>', 'Video quality (hd, medium, low)', configDefaults.quality || 'hd')
   .option('--debug', 'Enable debug mode (verbose console output)')
   .addHelpText('after', `
@@ -203,7 +207,12 @@ socket.on('connect', async () => {
     } else {
       console.log(chalk.cyan('Searching in ALL channels'));
     }
-    searchMovies(options.query, options.channel, options.limit);
+    
+    if (options.exclude) {
+      console.log(chalk.cyan(`Excluding channels: ${options.exclude}`));
+    }
+    
+    searchMovies(options.query, options.channel, options.limit, options.exclude);
   } else if (options.download) {
     debug('Command: Download video', { id: options.download });
     getAndDownloadVideo(options.download);
@@ -259,9 +268,9 @@ async function listChannels() {
 }
 
 // Search for movies
-async function searchMovies(query, channel = null, limit = null) {
+async function searchMovies(query, channel = null, limit = null, excludeChannels = null) {
   const spinner = ora('Searching...').start();
-  debug('Starting search', { query, channel, limit });
+  debug('Starting search', { query, channel, limit, excludeChannels });
   
   try {
     // Prepare search query
@@ -294,6 +303,13 @@ async function searchMovies(query, channel = null, limit = null) {
     
     debug('Prepared search query', searchQuery);
     
+    // Process excluded channels - we'll filter the results after searching
+    let excludedChannelsList = [];
+    if (excludeChannels) {
+      excludedChannelsList = excludeChannels.split(',').map(ch => ch.trim());
+      debug('Will exclude channels', { excludedChannels: excludedChannelsList });
+    }
+    
     return new Promise((resolve, reject) => {
       socket.emit('queryEntries', searchQuery, (response) => {
         spinner.stop();
@@ -305,7 +321,25 @@ async function searchMovies(query, channel = null, limit = null) {
           return;
         }
         
-        const results = response.result.results;
+        let results = response.result.results;
+        
+        // Filter out excluded channels if any were specified
+        if (excludedChannelsList.length > 0) {
+          const originalCount = results.length;
+          results = results.filter(item => !excludedChannelsList.includes(item.channel));
+          
+          const excludedCount = originalCount - results.length;
+          if (excludedCount > 0) {
+            console.log(chalk.yellow(`Excluded ${excludedCount} results from channels: ${excludedChannelsList.join(', ')}`));
+          }
+          
+          debug('Filtered excluded channels', { 
+            originalCount,
+            filteredCount: results.length,
+            excludedCount
+          });
+        }
+        
         debug('Search results received', { 
           count: results.length,
           queryInfo: response.result.queryInfo
@@ -682,11 +716,17 @@ async function startInteractiveMode() {
     const selectedChannel = options.channel || null;
     // Only use limit if passed as command line argument
     const limit = options.limit || null;
+    // Get excluded channels from command line if provided
+    const excludeChannels = options.exclude || null;
     
-    debug('User input received', { searchQuery, selectedChannel, limit });
+    debug('User input received', { searchQuery, selectedChannel, limit, excludeChannels });
+    
+    if (excludeChannels) {
+      console.log(chalk.cyan(`Excluding channels: ${excludeChannels}`));
+    }
     
     // Search for movies
-    const results = await searchMovies(searchQuery, selectedChannel, limit);
+    const results = await searchMovies(searchQuery, selectedChannel, limit, excludeChannels);
     
     if (results.length === 0) {
       console.log(chalk.yellow('No results found.'));
