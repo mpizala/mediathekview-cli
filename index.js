@@ -59,7 +59,14 @@ function loadConfig() {
   try {
     if (fs.existsSync(CONFIG_FILE)) {
       const configContent = fs.readFileSync(CONFIG_FILE, 'utf8');
-      return parse(configContent);
+      const config = parse(configContent);
+      
+      // Expand any tildes in paths
+      if (config.output) {
+        config.output = expandTildePath(config.output);
+      }
+      
+      return config;
     } else {
       // Create default config file
       createDefaultConfig();
@@ -332,6 +339,18 @@ function getVideoDetails(id) {
   });
 }
 
+// Expand tilde in file paths (e.g., ~/Downloads -> /home/user/Downloads)
+function expandTildePath(pathWithTilde) {
+  if (typeof pathWithTilde !== 'string') return pathWithTilde;
+  
+  // Replace leading ~/ or ~ with home directory
+  if (pathWithTilde.startsWith('~/') || pathWithTilde === '~') {
+    return pathWithTilde.replace(/^~(?=$|\/|\\)/, os.homedir());
+  }
+  
+  return pathWithTilde;
+}
+
 // Download a video
 async function downloadVideo(url, filename, video) {
   // If -o/--output is explicitly provided by user, use that directly
@@ -341,12 +360,16 @@ async function downloadVideo(url, filename, video) {
     // Use specified output path directly
     debug('Using specified output path', { outputPath: outputArg });
     
+    // Expand tilde if present
+    const expandedPath = expandTildePath(outputArg);
+    debug('Expanded path', { original: outputArg, expanded: expandedPath });
+    
     // If it's an absolute path, use it as is
-    if (path.isAbsolute(outputArg)) {
-      filename = outputArg;
+    if (path.isAbsolute(expandedPath)) {
+      filename = expandedPath;
     } else {
       // Otherwise treat as relative to current directory
-      filename = path.join(process.cwd(), outputArg);
+      filename = path.join(process.cwd(), expandedPath);
     }
   } else {
     // No output path specified, ask for filename
@@ -367,12 +390,16 @@ async function downloadVideo(url, filename, video) {
     
     // Use custom filename (might be relative or absolute)
     if (customFilename !== defaultFilename) {
-      if (path.isAbsolute(customFilename)) {
+      // Expand tilde if present
+      const expandedPath = expandTildePath(customFilename);
+      debug('Expanded custom path', { original: customFilename, expanded: expandedPath });
+      
+      if (path.isAbsolute(expandedPath)) {
         // Use absolute path as is
-        filename = customFilename;
+        filename = expandedPath;
       } else {
         // Use relative path from current directory
-        filename = path.join(process.cwd(), customFilename);
+        filename = path.join(process.cwd(), expandedPath);
       }
     } else {
       // Use default filename in current directory
