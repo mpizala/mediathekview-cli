@@ -15,7 +15,7 @@ A command-line interface for searching and downloading videos from MediathekView
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mediathekviewweb-cli.git
+git clone https://github.com/mpizala/mediathekview-cli.git
 
 # Navigate to the directory
 cd mediathekviewweb-cli
